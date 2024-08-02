@@ -8,7 +8,6 @@ FROM python:3.12-slim-bullseye as base
 # PIP_NO_CACHE_DIR: Disables the pip cache for smaller image size
 # PIP_DEFAULT_TIMEOUT: Avoids hanging during install
 # PIP_DISABLE_PIP_VERSION_CHECK: Suppresses the "new version" message
-# POETRY_VERSION: Specifies the version of poetry to install
 ENV PYTHONUNBUFFERED=1 \
     PYTHONFAULTHANDLER=1 \
     PIP_NO_CACHE_DIR=off \
@@ -22,7 +21,6 @@ WORKDIR /myapp
 RUN apt-get update \
     && apt-get install -y --no-install-recommends gcc libpq-dev \
     && apt-get upgrade -y \
-    && apt-get install -y --no-install-recommends gcc libpq-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -35,9 +33,14 @@ RUN pip install --upgrade pip \
 
 # Copy the rest of your application's code
 COPY . /myapp
+
+# Create the qr_codes directory
+RUN mkdir -p /myapp/qr_codes
+
 # Copy the startup script and make it executable
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
+
 # Run the application as a non-root user for security
 RUN useradd -m myuser
 USER myuser
@@ -45,4 +48,5 @@ USER myuser
 # Tell Docker about the port we'll run on.
 EXPOSE 8000
 
+# Define the default command to run the application
 CMD ["/start.sh"]
